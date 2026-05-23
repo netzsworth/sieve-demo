@@ -19,7 +19,7 @@ Each architecture demonstration requires a specific emulation environment or sof
 | Architecture | Source File | Required Execution Environment |
 | --- | --- | --- |
 | **MOS 6502** (C64) | `sieve_6502(c64).asm` | CBM prg Studio |
-| **Motorola 68000** | `sieve_68000.S68` | EASy68K |
+| **Motorola 68000** | `sieve_68000.S68`, `sieve_68000.L68` | EASy68K |
 | **x86-64** (AMD64) | `sieve_amd64.s` | QEMU (Bare-metal) |
 | **ARMv7** | `sieve_armv7.asm` | CPUlator |
 | **Intel 8086** | `sieve_emu8086.asm` | emu8086 |
@@ -37,7 +37,7 @@ Each architecture demonstration requires a specific emulation environment or sof
 ### 4.2 Executing Motorola 68000 (m68k)
 
 1. Launch the **EASy68K** Editor/Assembler.
-2. Open the file `sieve_68000.S68`.
+2. Open the file `sieve_68000.S68` in the same directory as `sieve_68000.L68`.
 3. Assemble the source code to generate the executable binary.
 4. Execute the resulting binary within the EASy68K simulator.
 
