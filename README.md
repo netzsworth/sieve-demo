@@ -1,4 +1,4 @@
-# README: Demonstration of the Sieve of Eratosthenes Algorithm Through Multiple CPU Architectures
+# Demonstration of the Sieve of Eratosthenes Algorithm Through Multiple CPU Architectures
 
 ## 1. Document Overview
 
