@@ -1,0 +1,125 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 5/22/2026 11:17:51 PM
+
+00000000                             1  *----------------------------------------------------------------------
+00000000                             2  * Sieve of Eratosthenes - Motorola 68000 (EASy68K v5.16)
+00000000                             3  * Finds all primes from 2 through 10000.
+00000000                             4  *
+00000000                             5  * sieve[n] = $FF  still prime
+00000000                             6  * sieve[n] = $00  composite (or n = 0, 1)
+00000000                             7  *
+00000000                             8  * After run, inspect:
+00000000                             9  *   PRIME_COUNT  longword  (expect 1229)
+00000000                            10  *   PRIMES       word list of all primes <= 10000
+00000000                            11  *   SIEVE        byte flags
+00000000                            12  *
+00000000                            13  * EASy68K: Assemble, Link, Simulate. The simulator prints PRIME_COUNT
+00000000                            14  *          then halts (Trap #15, task 20).
+00000000                            15  *----------------------------------------------------------------------
+00000000                            16  
+00001000                            17          ORG     $1000
+00001000                            18  
+00001000  =00002710                 19  LIMIT       EQU     10000
+00001000  =00000064                 20  SIEVE_P_MAX EQU     100             * floor(sqrt(LIMIT))
+00001000                            21  
+00001000  41F9 00004A2C             22  MAIN    LEA     SIEVE,A0            * A0 -> sieve table
+00001006                            23  
+00001006                            24  * Initialize sieve[2..LIMIT] to $FF (candidate prime).
+00001006  303C 0002                 25          MOVE.W  #2,D0
+0000100A  3E3C 2710                 26          MOVE.W  #LIMIT,D7
+0000100E                            27  INIT_LOOP
+0000100E  11BC 00FF 0000            28          MOVE.B  #$FF,0(A0,D0.W)
+00001014  5240                      29          ADDQ.W  #1,D0
+00001016  B047                      30          CMP.W   D7,D0
+00001018  6FF4                      31          BLE     INIT_LOOP
+0000101A                            32  
+0000101A  4228 0000                 33          CLR.B   0(A0)               * 0 and 1 are not prime
+0000101E  4228 0001                 34          CLR.B   1(A0)
+00001022                            35  
+00001022                            36  * Sieve: for p = 2 .. SIEVE_P_MAX, clear multiples p*p, p*p+p, ...
+00001022  303C 0002                 37          MOVE.W  #2,D0
+00001026                            38  SIEVE_OUTER
+00001026  B07C 0064                 39          CMP.W   #SIEVE_P_MAX,D0
+0000102A  6E00 0024                 40          BGT     COLLECT_PRIMES
+0000102E                            41  
+0000102E  4A30 0000                 42          TST.B   0(A0,D0.W)
+00001032  6700 0018                 43          BEQ     NEXT_P
+00001036                            44  
+00001036  3400                      45          MOVE.W  D0,D2
+00001038  C4C0                      46          MULU.W  D0,D2               * D2 = p * p
+0000103A  3202                      47          MOVE.W  D2,D1               * D1 = first multiple to clear
+0000103C                            48  
+0000103C                            49  MARK_LOOP
+0000103C  B27C 2710                 50          CMP.W   #LIMIT,D1
+00001040  6E00 000A                 51          BGT     NEXT_P
+00001044                            52  
+00001044  4230 1000                 53          CLR.B   0(A0,D1.W)
+00001048  D240                      54          ADD.W   D0,D1
+0000104A  60F0                      55          BRA     MARK_LOOP
+0000104C                            56  
+0000104C  5240                      57  NEXT_P  ADDQ.W  #1,D0
+0000104E  60D6                      58          BRA     SIEVE_OUTER
+00001050                            59  
+00001050                            60  * Collect primes into PRIMES[]; count in D3, then store to PRIME_COUNT.
+00001050                            61  COLLECT_PRIMES
+00001050  43F9 00004004             62          LEA     PRIMES,A1
+00001056  4283                      63          CLR.L   D3
+00001058                            64  
+00001058  303C 0002                 65          MOVE.W  #2,D0
+0000105C                            66  COUNT_LOOP
+0000105C  B07C 2710                 67          CMP.W   #LIMIT,D0
+00001060  6E00 0012                 68          BGT     DONE
+00001064                            69  
+00001064  4A30 0000                 70          TST.B   0(A0,D0.W)
+00001068  6700 0006                 71          BEQ     COUNT_NEXT
+0000106C                            72  
+0000106C  32C0                      73          MOVE.W  D0,(A1)+
+0000106E  5283                      74          ADDQ.L  #1,D3
+00001070                            75  
+00001070                            76  COUNT_NEXT
+00001070  5240                      77          ADDQ.W  #1,D0
+00001072  60E8                      78          BRA     COUNT_LOOP
+00001074                            79  
+00001074  23C3 00004000             80  DONE    MOVE.L  D3,PRIME_COUNT
+0000107A                            81  
+0000107A                            82  * Show prime count in the EASy68K output window, then halt simulator.
+0000107A  2239 00004000             83          MOVE.L  PRIME_COUNT,D1
+00001080  103C 0007                 84          MOVE.B  #7,D0               * Trap #15 task 7: write longword in D1
+00001084  4E4F                      85          TRAP    #15
+00001086                            86  
+00001086  103C 0014                 87          MOVE.B  #20,D0              * Trap #15 task 20: halt
+0000108A  4E4F                      88          TRAP    #15
+0000108C                            89  
+0000108C                            90  *----------------------------------------------------------------------
+0000108C                            91  * Data (placed above typical stack; code ends around $10xx)
+0000108C                            92  *----------------------------------------------------------------------
+00004000                            93          ORG     $4000
+00004000                            94  
+00004000                            95  PRIME_COUNT DS.L    1
+00004004                            96  PRIMES      DS.W    1300            * pi(10000) = 1229
+00004A2C                            97  SIEVE       DS.B    LIMIT+1
+0000713D                            98  
+0000713D                            99          END     MAIN
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+COLLECT_PRIMES      1050
+COUNT_LOOP          105C
+COUNT_NEXT          1070
+DONE                1074
+INIT_LOOP           100E
+LIMIT               2710
+MAIN                1000
+MARK_LOOP           103C
+NEXT_P              104C
+PRIMES              4004
+PRIME_COUNT         4000
+SIEVE               4A2C
+SIEVE_OUTER         1026
+SIEVE_P_MAX         64
